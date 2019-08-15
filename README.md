@@ -6,7 +6,7 @@ Hi Neal,
 
 This is the brief - Ken has been asking for this view for a few weeks and I haven't been able to help him as well as I should have.
 
-I need to make this view ready for Defence.  Unfortunately, it uses some items and has some option that we used for the GE model.
+I need to make this view ready for the Enterprise.  Unfortunately, it uses some items and has some option that we used for the GE model.
 
 This task is quite simple, but is the sort of thing I end up doing every day or so.
 
@@ -15,7 +15,7 @@ Refer to Vuetify docs for some things:
 
 Tasks:
 
-1. Remove the regulation and regulatory supplement switches
+1. Remove the **Regulation** and **Regulatory Supplement** switches.
 2. At the top bar, remove the select dropdowns for **Org Function** and **Product Service**
 3. Rename the dropdown for **Manual** to **Policy**
 
