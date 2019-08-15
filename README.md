@@ -69,6 +69,6 @@ Click F12 and click the Vue tab to access it
 
 [vue-devtools](https://github.com/vuejs/vue-devtools)
 
-### Git
+### Other packages: Git and NodeJS
 
-I'm assuming you have it installed... but it is useful
+I'm assuming you have probably these installed...
