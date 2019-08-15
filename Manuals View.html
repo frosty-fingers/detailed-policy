@@ -1,0 +1,881 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.10/dist/vuetify.js"></script>
+</head>
+<body>
+<style>
+	html, body {
+		height: 100%; /* The DOCTYPE used by the GenericHtmlControl requires that for height:100% in a child, all parents must be set height:100% */
+		overflow-y: auto;
+	}
+	p {
+		margin-bottom: 0px; /* override for Vuetify */
+	}
+	#detailsPanel {
+        overflow: auto;
+    }
+	.v-toolbar__content { 
+		/* override for toolbar padding so the print button aligns right */
+		padding-right: 15px;
+	}
+	@media print {
+        .noprint {
+            display: none!important;
+        }
+        html {
+            overflow: visible;
+        }
+        body {
+            overflow: visible;
+        }
+        #detailsPanel {
+            visibility: visible;
+			overflow: visible;
+        }
+    }
+</style>
+<v-app id="app" style="height:100%">
+	<v-container grid-list-sm fluid fill-height>
+		<v-layout column fill-height>
+			<v-flex class="noprint">
+				<v-card>
+					<v-container fluid class="pt-0 pb-1">
+						<v-layout row justify-start>
+							<v-flex md3>
+								<v-select
+									v-model="selectedOrgFunctionIds"
+									:items="organisationFunctions"
+									item-text="title"
+									item-value="id"
+									label="Function"
+									no-data-text="'Show all manuals'"
+									hide-details	
+									multiple			
+									placeholder="Show all manuals"			
+								>
+								<v-list-tile
+									slot="prepend-item"
+									>
+									<v-btn small flat color="primary" v-on:click="onOrgFuncSelectAll">Select All</v-btn>
+									<v-btn small flat color="primary" v-on:click="onOrgFuncClearAll">Clear All</v-btn>
+								</v-list-tile>
+								<v-divider
+									slot="prepend-item"
+									>
+								</v-divider>
+								</v-select>
+							</v-flex>
+							<v-flex md3>
+								<v-select
+									v-model="selectedProductIds"
+									:items="filteredProducts"
+									item-text="title"
+									item-value="id"
+									attach
+									label="Product / Service"
+									placeholder="Show all manuals"
+									hide-details
+									multiple				
+								>
+									<v-list-tile
+										slot="prepend-item"
+										>
+										<v-btn small flat color="primary" v-on:click="onProductSelectAll">Select All</v-btn>
+										<v-btn small flat color="primary" v-on:click="onProductClearAll">Clear All</v-btn>
+									</v-list-tile>
+									<v-divider
+										slot="prepend-item"
+										>
+									</v-divider>
+								</v-select>
+							</v-flex>
+							<v-flex md3>
+								<v-select
+									v-model="selectedManualId"
+									:items="filteredManuals"
+									item-text="title"
+									item-value="id"
+									label="Manual"
+									hide-details	
+									placeholder="Select a manual..."			
+								>
+								</v-select>
+							</v-flex>
+							<v-flex md3>
+								<v-select
+									v-if="filteredChapters.length > 0"
+									v-model="selectedChapterId"
+									:items="filteredChapters"
+									item-text="title"
+									item-value="id"
+									label="Chapter"
+									hide-details	
+									placeholder="Show all chapters"		
+								>
+									<v-list-tile
+										slot="prepend-item"
+										>
+										<v-btn small flat color="primary" v-on:click="onChapterSelectAll">All Chapters</v-btn>
+									</v-list-tile>
+								</v-select>
+							</v-flex>
+						</v-layout>
+					</v-container>
+				</v-card>
+			</v-flex>
+			<v-container fill-height fluid class="pa-1">
+				<v-layout row>
+					<v-flex class="noprint" d-flex md3 fill-height>
+						<v-card style="overflow:auto">
+							<v-subheader>Sections</v-subheader>
+							<v-text-field
+								class="pa-1"
+								hide-details
+								single-line
+								placeholder="filter..."
+								v-model="treeFilterText"
+							>
+							</v-text-field>
+							<v-btn
+								small
+								class="mx-1"
+								v-if="filteredTreeItems.length > 0"
+								v-on:click="onTreeExpandAllClick"
+								>Expand All
+							</v-btn>
+							<v-btn
+								small
+								class="mx-1"
+								v-if="filteredTreeItems.length > 0"
+								v-on:click="onTreeCollapseAllClick"
+								>Collapse All
+							</v-btn>
+							<v-btn
+								small
+								class="mx-1"
+								v-if="filteredTreeItems.length > 0"
+								v-on:click="onTreeSelectAllClick"
+								>Select All
+							</v-btn>
+							<v-btn
+								small
+								class="mx-1"
+								v-if="filteredTreeItems.length > 0"
+								v-on:click="onTreeDeselectAllClick"
+								>Clear All
+							</v-btn>
+							<v-treeview
+								:key="treeKey"
+								:items="filteredTreeItems"
+								:open="treeOpenIds"
+								item-key="id"
+								item-text="title"
+								item-children="filteredChildren"
+								v-model="selectedTreeIds"
+								selectable
+							>   
+								<template slot="label" slot-scope="{item}">
+									<div style="cursor: pointer" :title="item.title" v-on:click="onTreeItemClick(item)">{{ item.title }}</div>
+								</template>
+							</v-treeview>
+						</v-card>
+					</v-flex>
+					<v-flex id="detailsPanel" md9>
+						<v-card>
+						<v-layout row justify-space-between>
+							<v-flex>
+								<h5
+									v-if="selectedManualId"
+									class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
+									{{selectedManual.title}}
+								</h5>
+							</v-flex>
+							<v-flex class="noprint" d-flex align-content-end shrink>
+								<v-btn 
+									icon small flat color="accent"
+									v-if="selectedManualId"
+									v-on:click="openItemPrintLink(selectedManual)"
+									>
+									<v-icon small>print</v-icon>
+								</v-btn>
+							</v-flex>
+						</v-layout>
+						<v-toolbar class="noprint" flat height="52px">
+							<!-- <v-layout row align-center fill-height>
+								<v-flex md4> -->
+									<v-text-field
+										label="Filter"
+										placeholder="filter..."
+										v-model="filterText"
+										hide-details
+										>
+									</v-text-field>
+								<!-- </v-flex>
+								<v-spacer></v-spacer>
+								<v-flex> -->
+									<v-switch label="Policy" v-model="showPolicy" hide-details></v-switch>
+								<!-- </v-flex>
+								<v-flex> -->
+									<v-switch label="Processes" v-model="showProcesses" hide-details></v-switch>
+								<!-- </v-flex>
+								<v-flex> -->
+									<v-switch label="Regulations" v-model="showRegulation" hide-details></v-switch>
+								<!-- </v-flex>        
+								<v-flex> -->
+									<v-switch label="Regulatory Supplements" v-model="showRegulatorySupplements" hide-details></v-switch>
+									<v-btn 
+										icon small flat color="accent"
+										v-on:click="onClickBrowserPrint()"
+										title="Print View"
+										>
+										<v-icon small>print</v-icon>
+									</v-btn>
+								<!-- </v-flex>
+							</v-layout> -->
+						</v-toolbar>
+						<v-content>
+							<v-list>
+								<template 
+									v-for="item in filteredRows" 
+									>								
+								<v-card 
+									:key="item.id"	
+									:id="getId(item)"
+									flat
+									class="my-2"
+									>
+									<v-layout row justify-space-between>
+										<v-flex>
+											<h5
+												class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
+												{{item.title}}
+											</h5>
+										</v-flex>
+										<v-flex class="noprint" d-flex align-content-end shrink>
+											<v-btn 
+												icon small flat color="accent"
+												v-on:click="openItemPrintLink(item)"
+												>
+												<v-icon small>print</v-icon>
+											</v-btn>
+										</v-flex>
+									</v-layout>
+									<v-card-text 
+										v-if="item.description.length > 0"
+										v-show="showPolicy"
+										v-html="item.description">{{item.description}}
+									</v-card-text>
+									<v-card 
+										v-if="item.regulatorySupplements"
+										v-show="showRegulatorySupplements"    
+										elevation="1"
+										class="mx-3 my-2 py-2"
+										>
+										<v-card-title class="py-2">Regulatory Supplements</v-card-title>
+										<div 
+											v-for="regulatorySupplement in item.regulatorySupplements"
+											class="mx-3"
+											>
+											<div class="primary--text">{{regulatorySupplement.regulator}}</div>
+											<div v-html="regulatorySupplement.description">{{regulatorySupplement.description}}</div>
+										</div>
+									</v-card>
+									<v-card
+										v-if="item.regulations"
+										v-show="showRegulation"    
+										elevation="1"
+										class="mx-3 my-2 py-2"
+										>
+										<v-card-title class="py-2">Regulation</v-card-title>
+										<v-card-text class="py-0">
+											<ul class="pl-0" style="list-style-type: none;">
+												<li v-for="item in item.regulations" :key="item.id">
+													<a v-on:click="onClickItemLink(item)">
+														{{item.title}}
+													</a>
+												</li>
+											</ul>
+										</v-card-text>
+									</v-card>
+									<v-layout row class="my-2">
+									<v-flex 
+										shrink
+										v-if="item._processAreas"
+										v-show="showProcesses" 
+										>
+										<v-card
+											elevation="1"
+											class="ml-3 py-2"
+											>
+											<v-card-title class="py-2">Business Process Areas</v-card-title>
+											<v-card-text class="py-0">
+												<ul class="pl-0" style="list-style-type: none;">
+													<li v-for="item in item._processAreas">
+														<a v-on:click="onClickItemLink(item)">
+															{{item.title}}
+														</a>
+													</li>
+												</ul>
+											</v-card-text>
+										</v-card>
+									</v-flex>
+									<v-flex 
+										shrink
+										v-if="item._processes"
+										v-show="showProcesses" 
+										>
+										<v-card
+											elevation="1"
+											class="ml-3 py-2"
+											>
+											<v-card-title class="py-2">Business Processes</v-card-title>
+											<v-card-text class="py-0">
+												<ul class="pl-0" style="list-style-type: none;">
+													<li v-for="item in item._processes">
+														<a v-on:click="onClickItemLink(item)">
+															{{item.title}}
+														</a>
+													</li>
+												</ul>
+											</v-card-text>
+										</v-card>
+									</v-flex>
+									<v-flex 
+										shrink
+										v-if="item._processSteps"
+										v-show="showProcesses" 
+										>
+										<v-card
+											elevation="1"
+											class="ml-3 py-2"
+											>
+											<v-card-title class="py-2">Process Steps</v-card-title>
+											<v-card-text class="py-0">
+												<ul class="pl-0" style="list-style-type: none;">
+													<li v-for="item in item._processSteps">
+														<a v-on:click="onClickItemLink(item)">
+															{{item.title}}
+														</a>
+													</li>
+												</ul>
+											</v-card-text>
+										</v-card>
+									</v-flex>
+									</v-layout>
+								</v-card>
+								<v-divider></v-divider>
+								</template>
+							</v-list>
+						</v-content>
+						</v-card>
+					</v-flex>
+				</v-layout>
+			</v-container>
+		</v-layout>
+	</v-container>
+</v-app>
+  <script>
+//var _linkMap = {};
+//var _imageMap = {};
+import viewData from 'customer-data';
+
+Vue.use(Vuetify);
+
+var vm = new Vue({ 
+	el: '#app',
+	data: {
+		organisationFunctions: [],
+		selectedOrgFunctionIds: [],
+		selectedProductIds: [],
+		selectedManualId: "",
+		selectedChapterId: "allChapters",
+		selectedTreeIds: [],
+		policyTree: [],
+		treeKey: 0, // This property is used to trigger a re-render of the tree
+		treeFilterText: "",
+		treeOpenIds: [],
+		showPolicy: true,
+		showProcesses: true,
+		showRegulation: false,
+		showRegulatorySupplements: true,
+		filterText: "",
+		pageRootUrl: ""
+	},
+	created: function() {
+		this.organisationFunctions = this.buildOrganisationFunctions(viewData.organisationFunctions);
+		this.categoriseProcesses(viewData.policy);
+		this.policyTree = this.hierarchicalise(viewData.policy);
+		this.pageRootUrl = this.getRootUrl();
+	},
+	watch: {
+		/// The tree doesn't always respond completely to the cascading change of filters.
+		/// These watchers ensure that on any filter change the tree reselects all nodes and re-renders 
+		/// to reflect current filtered data
+		selectedOrgFunctionIds: function(oldValue, newValue) {
+			this.treeReselectAll();
+		},
+		selectedManualId: function(oldValue, newValue) {
+			
+			this.selectAllChapters();
+			this.treeReselectAll();
+		},
+		selectedChapterId: function(oldValue, newValue) {
+			this.treeReselectAll();
+		},
+		treeFilterText: function(oldValue, newValue) {
+			this.treeReselectAll();
+		}
+	},
+	computed: {
+		selectedManual: function() {
+			var result;
+			var selectedManualId = this.selectedManualId;
+			if (this.selectedManualId) {
+				result = viewData.manuals.filter(function(element) {
+					return element.id == selectedManualId;
+				})
+				[0];
+			}
+			return result;
+		},		
+		filteredProducts: function() {
+			var result = viewData.products;
+			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
+			
+			if (selectedOrgFunctionIds.length > 0)
+				result = viewData.products.filter(function(product) {
+					var result = false;
+					if (product.organisationFunctions)
+						result = product.organisationFunctions.some(function(orgFunctionId) {
+							return selectedOrgFunctionIds.includes(orgFunctionId);
+						});
+					return result;
+				});
+			return result;
+		},
+		filteredManuals: function() {
+			var result = viewData.manuals;
+			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
+			var selectedProductIds = this.selectedProductIds;
+
+			if (selectedOrgFunctionIds.length > 0)
+				result = result.filter(function(manual) {
+					var result = false;
+					if (manual.organisationFunctions)
+						result = manual.organisationFunctions.some(function(orgFunctionId) {
+							return selectedOrgFunctionIds.includes(orgFunctionId);
+						});
+					return result;
+				});
+
+			if (selectedProductIds.length > 0)
+				result = result.filter(function(manual) {
+					return selectedProductIds.includes(manual.product);
+				});
+
+			var groupedManuals = {};
+			result.forEach(function(manual) {
+				var groupName = manual.productTitle;
+				if (!groupName)
+					groupName = "Other";
+
+				var group = groupedManuals[groupName];
+				if (!group) {
+					group = [];
+					groupedManuals[groupName] = group;
+				}
+				group.push(manual);
+			});
+
+			result = [];
+			var groupNames = Object.keys(groupedManuals);
+			var isFirst = true;
+			groupNames.forEach(function(groupName) {
+				var group = groupedManuals[groupName];
+				if (!isFirst)
+					result.push({ divider: true });
+
+				result.push({ header: groupName });
+				group.forEach(function(manual) {
+					result.push({ id: manual.id, title: manual.title });
+				});
+				isFirst = false;
+			});
+
+			return result;
+		},
+		filteredChapters: function() {
+			var result = [];
+			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
+			var selectedManualId = this.selectedManualId;
+
+			if (selectedManualId) {
+				result = viewData.policy.filter(function(element) {
+					var result = false;
+					if (element.parent)
+						result = (element.parent == selectedManualId);
+
+					return result;
+				});;
+			}
+							
+			if (selectedOrgFunctionIds.length > 0)
+				result = result.filter(function(element) {
+					var result = false;
+					if (element.organisationFunctions)
+						result = element.organisationFunctions.some(function(orgFunctionId) {
+							return selectedOrgFunctionIds.includes(orgFunctionId);
+						});
+					return result;
+				});
+
+			return result;
+		},
+		resolvedSelectedChapterIds: function() {
+			// "Resolved" determines if the All button is selected (in which case returns all visible filters)
+			if (this.selectedChapterId && this.selectedChapterId == "allChapters")
+				return this.filteredChapters.map(function(element) {
+					return element.id;
+				});	
+			
+			return [ this.selectedChapterId ];
+		},
+		filteredTreeItems: function() {
+			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
+			var parentIds = this.resolvedSelectedChapterIds;
+			var textFilter = this.treeFilterText.toLowerCase();				
+			
+			var result = this.policyTree;
+
+			if (parentIds)
+				result = this.filterTreeByParent(parentIds, result);
+
+			if (selectedOrgFunctionIds.length > 0)
+				result = this.filterTreeByOrgFunction(selectedOrgFunctionIds, result);
+
+			if (textFilter.length > 0) 
+				result = this.filterTreeByText(textFilter, result);
+			
+			return result;
+		},
+		filteredRowsByTree: function() {
+			var selectedTreeIds = this.selectedTreeIds;
+			var result = viewData.policy.filter(function (policy) {
+					return selectedTreeIds.includes(policy.id);
+				});
+
+			return result;
+		},
+		filteredRows: function() {
+			var result = this.filteredRowsByTree;
+			
+			var filterText = this.filterText.toLowerCase();
+
+			if (filterText.length > 0) {
+				var showPolicy = this.showPolicy;
+				var showProcesses = this.showProcesses;
+				var showRegulation = this.showRegulation;
+				var showRegulatorySupplements = this.showRegulatorySupplements;
+				
+				result = this.filteredRowsByTree.filter(function(row) {
+					var result = row.title.toLowerCase().includes(filterText);
+					if (!result && showPolicy)
+						result = row.description.toLowerCase().includes(filterText);
+
+					if (!result && showRegulation && row.regulations)
+						result = row.regulations.filter(function(regulation) {
+							return regulation.title.toLowerCase().includes(filterText);
+						}).length > 0;
+
+					if (!result && showProcesses && row.processes)
+						result = row.processes.filter(function(process) {
+							return process.title.toLowerCase().includes(filterText);
+						}).length > 0;
+
+					if (!result && showRegulatorySupplements && row.regulatorySupplements)
+						result = row.regulatorySupplements.filter(function(regulatorySupplement) {
+							return regulatorySupplement.description.toLowerCase().includes(filterText);
+						}).length > 0;
+
+					return result;
+				});
+			}
+			return result;
+		}
+	},
+	methods: {
+		onClickItemLink: function(item) {
+			this.openItemLink(item);
+		},
+		onClickBrowserPrint: function() {
+			window.print();
+		},
+		onOrgFuncSelectAll: function() {
+			this.selectedOrgFunctionIds = this.organisationFunctions.map(function(item) { return item.id });
+		},
+		onOrgFuncClearAll: function() {
+			this.selectedOrgFunctionIds = [];
+		},
+		onProductSelectAll: function() {
+			this.selectedProductIds = viewData.products.map(function(item) { return item.id });
+		},
+		onProductClearAll: function() {
+			this.selectedProductIds = [];
+		},
+		onChapterSelectAll: function() {
+			this.selectAllChapters();
+			this.treeSelectAll();
+		},
+		onTreeExpandAllClick: function() {
+			this.treeOpenIds = this.getElementsDeep(this.filteredTreeItems)
+					.map(function(element) {
+						return element.id;
+					});
+		},
+		onTreeCollapseAllClick: function() {
+			this.treeOpenIds = [];
+		},
+		onTreeSelectAllClick: function() {
+			this.treeSelectAll();
+		},
+		onTreeDeselectAllClick: function() {
+			this.selectedTreeIds = [];
+		},
+		onTreeItemClick: function(item) {
+			var id = this.getId(item);
+			var element = document.getElementById(id);
+			if (element)
+				element.scrollIntoView(true);
+		},
+		treeSelectAll: function() {
+			this.selectedTreeIds = this.getElementsDeep(this.filteredTreeItems)
+					.map(function(element) {
+						return element.id;
+					});
+		},
+		treeReselectAll: function() {
+			var allNodeIds = this.filteredTreeItems.map(function(element){
+					return element.id;
+					});
+			this.selectedTreeIds = allNodeIds;
+			this.treeOpenIds = allNodeIds;
+			this.treeKey = this.treeKey + 1; // Triggers a re-render of the tree.
+		},
+		selectAllChapters: function() {
+				this.selectedChapterId = "allChapters";
+		},
+		filterTreeByParent: function(parentIds, items) {
+			// Finds first children that match the parent ids - breadth first.
+			var result = [];
+			var queue = [];
+			items.forEach(function(item) {
+				queue.push(item);
+			});
+			while (queue.length > 0) {
+				var item = queue.shift();
+				
+				if (item.children)
+					item.filteredChildren = item.children;
+
+				if (parentIds.includes(item.id))
+					result.push(item);
+				if (item.children) {
+					item.children.forEach(function(child) {
+						queue.push(child);
+					});
+				}
+			}
+			return result;
+		},
+		filterTreeByOrgFunction: function(orgFuncIds, items) {
+			// Adjusts the filteredChildren attribute of each node to include only children matching the org func.
+			// If an org func matches a child, all ancestor nodes of the child up to the root remain in the tree.
+			var result = [];
+			items.forEach(function(item) {
+				var match = item.organisationFunctions && item.organisationFunctions.some(function(orgFuncId) {
+					return orgFuncIds.includes(orgFuncId);
+				});
+				
+				if (item.filteredChildren) {
+					item.filteredChildren = this.filterTreeByOrgFunction(orgFuncIds, item.filteredChildren);
+					match = match || item.filteredChildren.length > 0;
+				}
+
+				if (match)
+					result.push(item);
+
+			}.bind(this));
+
+			return result;
+		},
+		filterTreeByText: function(textFilter, items) {
+			var result = [];
+			// Adjusts the filteredChildren attribute of each node to include only children matching the text filter on the title attribute.
+			// If a child is matched, all ancestor nodes of the child up to the root remain in the tree.
+			items.forEach(function(item) {
+				var match = item.title.toLowerCase().includes(textFilter);
+
+				if (item.filteredChildren) {
+					item.filteredChildren = this.filterTreeByText(textFilter, item.filteredChildren);
+					match = match || item.filteredChildren.length > 0;
+				}
+
+				if (match)
+					result.push(item);
+
+			}.bind(this));		
+
+			return result;
+		},
+		buildOrganisationFunctions: function(array) {
+		//	return [{ id: "all", title: "Show all manuals" }].concat(array);
+			return array;
+		},
+		categoriseProcesses: function(array) {
+			array.forEach(function(element) {
+				if (element.processes) {
+					var processAreas = element.processes.filter(function(process) {
+						return process.type == "BusinessProcessAreaDiagram";
+					});
+					var processes = element.processes.filter(function(process) {
+						return process.type == "BusinessProcessDiagram";
+					});
+					var processSteps = element.processes.filter(function(process) {
+						return process.type == "ProcessStep";
+					});
+
+					if (processAreas.length > 0)
+						element._processAreas = processAreas;
+
+					if (processes.length > 0)
+						element._processes = processes;
+					
+					if (processSteps.length > 0)
+						element._processSteps = processSteps;
+				}
+
+			});
+		},
+		hierarchicalise: function (array) {
+			// NOTE: Modifies the original array - adds "children" attribute to each element with children
+			// Adds a children element and returns a list of the root elements.
+			// Expects array to be a list of objects where each element has a key attribute and an optional parent attribute (parent is parent key)
+			// Parent key of null or undefined implies root element
+			// The array is not required to be ordered (ie parent before child). 
+			var result = [];
+
+			// First pass indexes by key
+			var elementsByKey = {};
+			array.forEach(function (element) {
+				elementsByKey[element.id] = element;
+			});
+
+			// Second pass resolves parent-child relationships
+			array.forEach(function (element) {
+				if (element.parent === undefined || element.parent == null)
+					result.push(element);
+				else {
+					var parent = elementsByKey[element.parent];
+					if (parent.children == undefined)
+						parent.children = [];
+
+					parent.children.push(element);
+				}
+			});
+			return result;
+		},
+		getElementsDeep: function(input, result) {
+			if (result === undefined)
+				result = [];
+			
+			input.forEach(function(element){
+				result.push(element);
+				if (element.children !== undefined && element.children.length > 0)
+					this.getElementsDeep(element.children, result);
+				}.bind(this)
+			);
+
+			return result;
+		},
+		getElementById: function(input, id) {
+			var result;
+			for (element of input) {
+				if (element.id == id)
+					result = element;
+
+				if (!result && element.children) {
+					result = this.getElementById(element.children, id);
+					if (result)
+						break;
+				}
+			}
+			return result;
+		},
+		getId: function(item) {
+			// HTML4 requires ids to start with an alpha char and not contain braces.
+			var result = "ID" + item.id;
+			result = result.replace("{", "");
+			result = result.replace("}", "");
+			return result;
+		},
+		getRootUrl: function() {
+			// Calculates the root site url. 
+			// When hosted in the GenericHtmlView control, the page url is not the site url.
+			// This looks up the window parent chain to get the url from the iframe host.
+			var result = "";
+			if (window.parent.parent) {
+				result = window.parent.parent.location.href;
+				var itemIndex = result.toLowerCase().lastIndexOf("item/");
+				if (itemIndex > 0) {
+					itemIndex = itemIndex + 5;
+					result = result.substring(0, itemIndex);
+				}
+				return result;
+			}
+		},
+		getItemHref: function(item) {
+			var result = "";
+			if (item.sourceLocation)
+				result = item.sourceLocation;
+			
+			return this.pageRootUrl + item.id;
+		},
+		openItemLink: function(item) {
+			var openInNewTab = viewData.mainAreaItems[item.id];
+			var application = parent.parent;
+			
+			if (item.sourceLocation) {
+				// Always open url in a new tab
+				return application.openActionTarget(event, item.sourceLocation, "", null, "_blank", null);
+			}
+			else if (openInNewTab) {
+				// Open the process in a new tab
+				
+				if (application.latestReleaseState != "")
+					actionUrl = application.localUrlHeader + '/PublishedWebsite/Latest' + application.latestReleaseState + '/' + application.libraryId.replace('{', '').replace('}', '') + '/Item/' + item.id.replace('{', '').replace('}', '');
+				else
+					actionUrl = application.localUrlHeader + '/PublishedWebsite/' + application.modelId.replace('{', '').replace('}', '') + '/Item/' + item.id.replace('{', '').replace('}', '');
+				
+				console.log(actionUrl);
+				return application.openActionTarget(event, actionUrl, "", null, "_blank", null);
+			}
+			else {
+				// Open item in lightbox
+				return application.openActionTarget(event, "", item.id, null, "lightbox", null) 
+			}
+		},
+		openItemPrintLink: function(item) {
+			var application = parent.parent;
+			var url = application.localUrlHeader + "/PublishedWebsite/Print/PrintReport.aspx?ModelId=" + application.modelId + "&Target=" + application.target + "&Theme=" + application.theme + "&ItemId=" + item.id;
+			application.showLightBox(url);
+		}
+	}
+});
+  </script>
+</body>
+</html>
