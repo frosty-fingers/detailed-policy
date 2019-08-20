@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vuetify@1.5.10/dist/vuetify.js"></script>
+  <script src="vuetify-colors.js"></script>
   <script src='customer-data.js'></script>
 </head>
 <body>
@@ -40,14 +41,18 @@
         }
     }
 </style>
-<v-app id="app" style="height:100%">
+<v-app id="app" style="height:100%" class="">
 	<v-container grid-list-sm fluid fill-height>
 		<v-layout column fill-height>
 			<v-flex class="noprint">
 				<v-card>
 					<v-container fluid class="pt-0 pb-1">
 						<v-layout row justify-start>
-							<v-flex md3>
+							<!-- Commented out at the request of James,
+								removes two drop down menus and the containers
+								they were in.
+							-->
+							<!-- <v-flex md3>
 								<v-select
 									v-model="selectedOrgFunctionIds"
 									:items="organisationFunctions"
@@ -70,8 +75,8 @@
 									>
 								</v-divider>
 								</v-select>
-							</v-flex>
-							<v-flex md3>
+							</v-flex> -->						
+							<!-- <v-flex md3>
 								<v-select
 									v-model="selectedProductIds"
 									:items="filteredProducts"
@@ -94,16 +99,16 @@
 										>
 									</v-divider>
 								</v-select>
-							</v-flex>
+							</v-flex> -->
 							<v-flex md3>
 								<v-select
 									v-model="selectedManualId"
 									:items="filteredManuals"
 									item-text="title"
 									item-value="id"
-									label="Manual"
+									label="Policy"
 									hide-details	
-									placeholder="Select a manual..."			
+									placeholder="Select a Policy..."			
 								>
 								</v-select>
 							</v-flex>
@@ -223,12 +228,8 @@
 								<!-- </v-flex>
 								<v-flex> -->
 									<v-switch label="Processes" v-model="showProcesses" hide-details></v-switch>
-								<!-- </v-flex>
+								<!-- </v-flex>    
 								<v-flex> -->
-									<v-switch label="Regulations" v-model="showRegulation" hide-details></v-switch>
-								<!-- </v-flex>        
-								<v-flex> -->
-									<v-switch label="Regulatory Supplements" v-model="showRegulatorySupplements" hide-details></v-switch>
 									<v-btn 
 										icon small flat color="accent"
 										v-on:click="onClickBrowserPrint()"
@@ -385,7 +386,13 @@
 //var _imageMap = {};
 //PASTE THE CUSTOMER DATA HERE//
 
-Vue.use(Vuetify);
+//Vue.use(Vuetify);
+Vue.use(Vuetify, {
+	theme: {
+		primary: red,
+		secondary: orange
+	}
+});
 
 var vm = new Vue({ 
 	el: '#app',
