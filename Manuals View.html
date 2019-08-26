@@ -48,58 +48,6 @@
 				<v-card>
 					<v-container fluid class="pt-0 pb-1">
 						<v-layout row justify-start>
-							<!-- Commented out at the request of James,
-								removes two drop down menus and the containers
-								they were in.
-							-->
-							<!-- <v-flex md3>
-								<v-select
-									v-model="selectedOrgFunctionIds"
-									:items="organisationFunctions"
-									item-text="title"
-									item-value="id"
-									label="Function"
-									no-data-text="'Show all manuals'"
-									hide-details	
-									multiple			
-									placeholder="Show all manuals"			
-								>
-								<v-list-tile
-									slot="prepend-item"
-									>
-									<v-btn small flat color="primary" v-on:click="onOrgFuncSelectAll">Select All</v-btn>
-									<v-btn small flat color="primary" v-on:click="onOrgFuncClearAll">Clear All</v-btn>
-								</v-list-tile>
-								<v-divider
-									slot="prepend-item"
-									>
-								</v-divider>
-								</v-select>
-							</v-flex> -->						
-							<!-- <v-flex md3>
-								<v-select
-									v-model="selectedProductIds"
-									:items="filteredProducts"
-									item-text="title"
-									item-value="id"
-									attach
-									label="Product / Service"
-									placeholder="Show all manuals"
-									hide-details
-									multiple				
-								>
-									<v-list-tile
-										slot="prepend-item"
-										>
-										<v-btn small flat color="primary" v-on:click="onProductSelectAll">Select All</v-btn>
-										<v-btn small flat color="primary" v-on:click="onProductClearAll">Clear All</v-btn>
-									</v-list-tile>
-									<v-divider
-										slot="prepend-item"
-										>
-									</v-divider>
-								</v-select>
-							</v-flex> -->
 							<v-flex md3>
 								<v-select
 									v-model="selectedManualId"
@@ -414,9 +362,9 @@ var vm = new Vue({
 		this.policyTree = this.hierarchicalise(viewData.policy);
 		this.pageRootUrl = this.getRootUrl();
 		// Below controls the colors, can be adjusted using values in vuetify-colors.js
-		this.$vuetify.theme.primary = orange
+		this.$vuetify.theme.primary = purple.lighten2
 		this.$vuetify.theme.secondary = '#FFFFFF'
-		this.$vuetify.theme.accent = orange.darken1
+		this.$vuetify.theme.accent = purple.lighten1
 	},
 	watch: {
 		/// The tree doesn't always respond completely to the cascading change of filters.
@@ -485,10 +433,11 @@ var vm = new Vue({
 				});
 
 			var groupedManuals = {};
+			const noGroupName = "Uncategorized"
 			result.forEach(function(manual) {
-				var groupName = manual.productTitle;
+				var groupName = manual.groupTitle;
 				if (!groupName)
-					groupName = "Other";
+					groupName = noGroupName;
 
 				var group = groupedManuals[groupName];
 				if (!group) {
@@ -501,6 +450,17 @@ var vm = new Vue({
 			result = [];
 			var groupNames = Object.keys(groupedManuals);
 			var isFirst = true;
+
+			groupNames.forEach(function(groupName) {
+				if (groupName === noGroupName) {
+					groupNames.push(
+						groupNames.splice(
+							groupNames.indexOf(groupName), 1
+						)[0]
+					)
+				}
+			})
+
 			groupNames.forEach(function(groupName) {
 				var group = groupedManuals[groupName];
 				if (!isFirst)
