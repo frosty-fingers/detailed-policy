@@ -192,136 +192,141 @@
 							<v-list>
 								<template 
 									v-for="item in filteredRows" 
-									>								
-								<v-card 
-									:key="item.id"	
-									:id="getId(item)"
-									flat
-									class="my-2"
-									>
-<!-- 									<v-layout row justify-space-between>
- -->									<v-flex
- 											v-show="filteredChapters.includes(item) || !(showPolicy)"
- 										>
-											<h5
-												class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
-												{{item.title}}
-											</h5>
-										</v-flex>
-<!-- 										<v-flex class="noprint" d-flex align-content-end shrink>
-											<v-btn 
-												icon small flat color="accent"
-												v-on:click="openItemPrintLink(item)"
-												>
-												<v-icon small>print</v-icon>
-											</v-btn>
-										</v-flex>
-									</v-layout> -->
-									<v-card-text 
-										v-if="item.description.length > 0"
-										v-show="showPolicy"
-										v-html="item.description">{{item.description}}
-									</v-card-text>
-									<v-card 
-										v-if="item.regulatorySupplements"
-										v-show="showRegulatorySupplements"    
-										elevation="1"
-										class="mx-3 my-2 py-2"
-										>
-										<v-card-title class="py-2">Regulatory Supplements</v-card-title>
-										<div 
-											v-for="regulatorySupplement in item.regulatorySupplements"
-											class="mx-3"
-											>
-											<div class="primary--text">{{regulatorySupplement.regulator}}</div>
-											<div v-html="regulatorySupplement.description">{{regulatorySupplement.description}}</div>
-										</div>
-									</v-card>
+								>
+								<v-hover>								
 									<v-card
-										v-if="item.regulations"
-										v-show="showRegulation"    
-										elevation="1"
-										class="mx-3 my-2 py-2"
-										>
-										<v-card-title class="py-2">Regulation</v-card-title>
-										<v-card-text class="py-0">
-											<ul class="pl-0" style="list-style-type: none;">
-												<li v-for="item in item.regulations" :key="item.id">
-													<a v-on:click="onClickItemLink(item)">
-														{{item.title}}
-													</a>
-												</li>
-											</ul>
+										v-on:click="testClick(item)"
+										:key="item.id"	
+										:id="getId(item)"
+										flat
+										class="my-2"
+										slot-scope="{ hover }"
+										:class="hover ? 'elevation-3' : ''"
+									>
+	<!-- 									<v-layout row justify-space-between>
+	-->									<v-flex
+												v-show="filteredChapters.includes(item) || !(showPolicy)"
+											>
+												<h5
+													class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
+													{{item.title}}
+												</h5>
+										</v-flex>
+	<!-- 										<v-flex class="noprint" d-flex align-content-end shrink>
+												<v-btn 
+													icon small flat color="accent"
+													v-on:click="openItemPrintLink(item)"
+													>
+													<v-icon small>print</v-icon>
+												</v-btn>
+											</v-flex>
+										</v-layout> -->
+										<v-card-text 
+											v-if="item.description.length > 0"
+											v-show="showPolicy"
+											v-html="item.description">{{item.description}}
 										</v-card-text>
+										<v-card 
+											v-if="item.regulatorySupplements"
+											v-show="showRegulatorySupplements"    
+											elevation="1"
+											class="mx-3 my-2 py-2"
+											>
+											<v-card-title class="py-2">Regulatory Supplements</v-card-title>
+											<div 
+												v-for="regulatorySupplement in item.regulatorySupplements"
+												class="mx-3"
+												>
+												<div class="primary--text">{{regulatorySupplement.regulator}}</div>
+												<div v-html="regulatorySupplement.description">{{regulatorySupplement.description}}</div>
+											</div>
+										</v-card>
+										<v-card
+											v-if="item.regulations"
+											v-show="showRegulation"    
+											elevation="1"
+											class="mx-3 my-2 py-2"
+											>
+											<v-card-title class="py-2">Regulation</v-card-title>
+											<v-card-text class="py-0">
+												<ul class="pl-0" style="list-style-type: none;">
+													<li v-for="item in item.regulations" :key="item.id">
+														<a v-on:click="onClickItemLink(item)">
+															{{item.title}}
+														</a>
+													</li>
+												</ul>
+											</v-card-text>
+										</v-card>
+										<v-layout row class="my-2">
+										<v-flex 
+											shrink
+											v-if="item._processAreas"
+											v-show="showProcesses" 
+											>
+											<v-card
+												elevation="1"
+												class="ml-3 py-2"
+												>
+												<v-card-title class="py-2">Business Process Areas</v-card-title>
+												<v-card-text class="py-0">
+													<ul class="pl-0" style="list-style-type: none;">
+														<li v-for="item in item._processAreas">
+															<a v-on:click="onClickItemLink(item)">
+																{{item.title}}
+															</a>
+														</li>
+													</ul>
+												</v-card-text>
+											</v-card>
+										</v-flex>
+										<v-flex 
+											shrink
+											v-if="item._processes"
+											v-show="showProcesses" 
+											>
+											<v-card
+												elevation="1"
+												class="ml-3 py-2"
+												>
+												<v-card-title class="py-2">Business Processes</v-card-title>
+												<v-card-text class="py-0">
+													<ul class="pl-0" style="list-style-type: none;">
+														<li v-for="item in item._processes">
+															<a v-on:click="onClickItemLink(item)">
+																{{item.title}}
+															</a>
+														</li>
+													</ul>
+												</v-card-text>
+											</v-card>
+										</v-flex>
+										<v-flex 
+											shrink
+											v-if="item._processSteps"
+											v-show="showProcesses" 
+											>
+											<v-card
+												elevation="1"
+												class="ml-3 py-2"
+												>
+												<v-card-title class="py-2">Process Steps</v-card-title>
+												<v-card-text class="py-0">
+													<ul class="pl-0" style="list-style-type: none;">
+														<li v-for="item in item._processSteps">
+															<a v-on:click="onClickItemLink(item)">
+																{{item.title}}
+															</a>
+														</li>
+													</ul>
+												</v-card-text>
+											</v-card>
+										</v-flex>
+										</v-layout>
 									</v-card>
-									<v-layout row class="my-2">
-									<v-flex 
-										shrink
-										v-if="item._processAreas"
-										v-show="showProcesses" 
-										>
-										<v-card
-											elevation="1"
-											class="ml-3 py-2"
-											>
-											<v-card-title class="py-2">Business Process Areas</v-card-title>
-											<v-card-text class="py-0">
-												<ul class="pl-0" style="list-style-type: none;">
-													<li v-for="item in item._processAreas">
-														<a v-on:click="onClickItemLink(item)">
-															{{item.title}}
-														</a>
-													</li>
-												</ul>
-											</v-card-text>
-										</v-card>
-									</v-flex>
-									<v-flex 
-										shrink
-										v-if="item._processes"
-										v-show="showProcesses" 
-										>
-										<v-card
-											elevation="1"
-											class="ml-3 py-2"
-											>
-											<v-card-title class="py-2">Business Processes</v-card-title>
-											<v-card-text class="py-0">
-												<ul class="pl-0" style="list-style-type: none;">
-													<li v-for="item in item._processes">
-														<a v-on:click="onClickItemLink(item)">
-															{{item.title}}
-														</a>
-													</li>
-												</ul>
-											</v-card-text>
-										</v-card>
-									</v-flex>
-									<v-flex 
-										shrink
-										v-if="item._processSteps"
-										v-show="showProcesses" 
-										>
-										<v-card
-											elevation="1"
-											class="ml-3 py-2"
-											>
-											<v-card-title class="py-2">Process Steps</v-card-title>
-											<v-card-text class="py-0">
-												<ul class="pl-0" style="list-style-type: none;">
-													<li v-for="item in item._processSteps">
-														<a v-on:click="onClickItemLink(item)">
-															{{item.title}}
-														</a>
-													</li>
-												</ul>
-											</v-card-text>
-										</v-card>
-									</v-flex>
-									</v-layout>
-								</v-card>
 								<v-divider></v-divider>
-								</template>
+								</v-hover>
+							</template>
 							</v-list>
 						</v-content>
 						</v-card>
@@ -841,6 +846,9 @@ var vm = new Vue({
 			var application = parent.parent;
 			var url = application.localUrlHeader + "/PublishedWebsite/Print/PrintReport.aspx?ModelId=" + application.modelId + "&Target=" + application.target + "&Theme=" + application.theme + "&ItemId=" + item.id;
 			application.showLightBox(url);
+		},
+		testClick: (item) => {
+			console.log(item.title)
 		}
 	}
 });
