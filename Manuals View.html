@@ -141,7 +141,7 @@
 					</v-flex>
 					<v-flex id="detailsPanel" md9>
 						<v-card>
-	<!-- 					<v-layout row justify-space-between> -->
+						<v-layout row justify-space-between>
 							<v-flex>
 								<h5
 									v-if="selectedManualId"
@@ -149,16 +149,16 @@
 									{{selectedManual.title}}
 								</h5>
 							</v-flex>
-<!-- 							<v-flex class="noprint" d-flex align-content-end shrink>
+ 							<v-flex class="noprint" d-flex align-content-end shrink>
 								<v-btn 
 									icon small flat color="accent"
 									v-if="selectedManualId"
 									v-on:click="openItemPrintLink(selectedManual)"
 									>
-									<v-icon small>print</v-icon>
+									<v-icon small>open_in_new</v-icon>
 								</v-btn>
 							</v-flex>
- --><!-- 						</v-layout> -->
+						</v-layout>
 						<v-toolbar class="noprint" flat height="52px">
 							<!-- <v-layout row align-center fill-height>
 								<v-flex md4> -->
@@ -181,7 +181,7 @@
 									<v-btn 
 										icon small flat color="primary"
 										v-on:click="onClickBrowserPrint()"
-										title="Print View"
+										title="Print Selected Sections"
 										>
 										<v-icon small>print</v-icon>
 									</v-btn>
@@ -195,7 +195,7 @@
 								>
 								<v-hover>								
 									<v-card
-										v-on:click="testClick(item)"
+										v-on:click="openItemLink(item)"
 										:key="item.id"	
 										:id="getId(item)"
 										flat
@@ -846,9 +846,6 @@ var vm = new Vue({
 			var application = parent.parent;
 			var url = application.localUrlHeader + "/PublishedWebsite/Print/PrintReport.aspx?ModelId=" + application.modelId + "&Target=" + application.target + "&Theme=" + application.theme + "&ItemId=" + item.id;
 			application.showLightBox(url);
-		},
-		testClick: (item) => {
-			console.log(item.title)
 		}
 	}
 });
