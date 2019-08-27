@@ -200,7 +200,9 @@
 									class="my-2"
 									>
 <!-- 									<v-layout row justify-space-between>
- -->									<v-flex>
+ -->									<v-flex
+ 											v-show="filteredChapters.includes(item) || !(showPolicy)"
+ 										>
 											<h5
 												class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
 												{{item.title}}
