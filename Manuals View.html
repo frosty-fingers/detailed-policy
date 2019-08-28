@@ -160,33 +160,22 @@
 							</v-flex>
 						</v-layout>
 						<v-toolbar class="noprint" flat height="52px">
-							<!-- <v-layout row align-center fill-height>
-								<v-flex md4> -->
-									<v-text-field
-										label="Filter"
-										placeholder="filter..."
-										v-model="filterText"
-										hide-details
-										>
-									</v-text-field>
-								<!-- </v-flex>
-								<v-spacer></v-spacer>
-								<v-flex> -->
-									<v-switch color="primary" label="Policy" v-model="showPolicy" hide-details></v-switch>
-								<!-- </v-flex>
-								<v-flex> -->
-									<v-switch color="primary" label="Processes" v-model="showProcesses" hide-details></v-switch>
-								<!-- </v-flex>    
-								<v-flex> -->
-									<v-btn 
-										icon small flat color="primary"
-										v-on:click="onClickBrowserPrint()"
-										title="Print Selected Sections"
-										>
-										<v-icon small>print</v-icon>
-									</v-btn>
-								<!-- </v-flex>
-							</v-layout> -->
+							<v-text-field
+								label="Filter"
+								placeholder="filter..."
+								v-model="filterText"
+								hide-details
+								>
+							</v-text-field>
+							<v-switch color="primary" label="Policy" v-model="showPolicy" hide-details></v-switch>
+							<v-switch color="primary" label="Processes" v-model="showProcesses" hide-details></v-switch>
+							<v-btn 
+								icon small flat color="primary"
+								v-on:click="onClickBrowserPrint()"
+								title="Print Selected Sections"
+								>
+								<v-icon small>print</v-icon>
+							</v-btn>
 						</v-toolbar>
 						<v-content>
 							<v-list>
@@ -203,61 +192,19 @@
 										slot-scope="{ hover }"
 										:class="hover ? 'elevation-3' : ''"
 									>
-	<!-- 									<v-layout row justify-space-between>
-	-->									<v-flex
-												v-show="filteredChapters.includes(item) || !(showPolicy)"
-											>
-												<h5
-													class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
-													{{item.title}}
-												</h5>
+										<v-flex
+											v-show="filteredChapters.includes(item) || item.sectionType === 'Section' || !(showPolicy)"
+										>
+											<h5
+												class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
+												{{item.title}}
+											</h5>
 										</v-flex>
-	<!-- 										<v-flex class="noprint" d-flex align-content-end shrink>
-												<v-btn 
-													icon small flat color="accent"
-													v-on:click="openItemPrintLink(item)"
-													>
-													<v-icon small>print</v-icon>
-												</v-btn>
-											</v-flex>
-										</v-layout> -->
 										<v-card-text 
 											v-if="item.description.length > 0"
 											v-show="showPolicy"
 											v-html="item.description">{{item.description}}
 										</v-card-text>
-										<v-card 
-											v-if="item.regulatorySupplements"
-											v-show="showRegulatorySupplements"    
-											elevation="1"
-											class="mx-3 my-2 py-2"
-											>
-											<v-card-title class="py-2">Regulatory Supplements</v-card-title>
-											<div 
-												v-for="regulatorySupplement in item.regulatorySupplements"
-												class="mx-3"
-												>
-												<div class="primary--text">{{regulatorySupplement.regulator}}</div>
-												<div v-html="regulatorySupplement.description">{{regulatorySupplement.description}}</div>
-											</div>
-										</v-card>
-										<v-card
-											v-if="item.regulations"
-											v-show="showRegulation"    
-											elevation="1"
-											class="mx-3 my-2 py-2"
-											>
-											<v-card-title class="py-2">Regulation</v-card-title>
-											<v-card-text class="py-0">
-												<ul class="pl-0" style="list-style-type: none;">
-													<li v-for="item in item.regulations" :key="item.id">
-														<a v-on:click="onClickItemLink(item)">
-															{{item.title}}
-														</a>
-													</li>
-												</ul>
-											</v-card-text>
-										</v-card>
 										<v-layout row class="my-2">
 										<v-flex 
 											shrink
@@ -364,7 +311,6 @@ var vm = new Vue({
 		pageRootUrl: ""
 	},
 	created: function() {
-		this.organisationFunctions = this.buildOrganisationFunctions(viewData.organisationFunctions);
 		this.categoriseProcesses(viewData.policy);
 		this.policyTree = this.hierarchicalise(viewData.policy);
 		this.pageRootUrl = this.getRootUrl();
@@ -377,11 +323,7 @@ var vm = new Vue({
 		/// The tree doesn't always respond completely to the cascading change of filters.
 		/// These watchers ensure that on any filter change the tree reselects all nodes and re-renders 
 		/// to reflect current filtered data
-		selectedOrgFunctionIds: function(oldValue, newValue) {
-			this.treeReselectAll();
-		},
 		selectedManualId: function(oldValue, newValue) {
-			
 			this.selectAllChapters();
 			this.treeReselectAll();
 		},
@@ -421,23 +363,6 @@ var vm = new Vue({
 		},
 		filteredManuals: function() {
 			var result = viewData.manuals;
-			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
-			var selectedProductIds = this.selectedProductIds;
-
-			if (selectedOrgFunctionIds.length > 0)
-				result = result.filter(function(manual) {
-					var result = false;
-					if (manual.organisationFunctions)
-						result = manual.organisationFunctions.some(function(orgFunctionId) {
-							return selectedOrgFunctionIds.includes(orgFunctionId);
-						});
-					return result;
-				});
-
-			if (selectedProductIds.length > 0)
-				result = result.filter(function(manual) {
-					return selectedProductIds.includes(manual.product);
-				});
 
 			var groupedManuals = {};
 			const noGroupName = "Uncategorized"
@@ -484,7 +409,6 @@ var vm = new Vue({
 		},
 		filteredChapters: function() {
 			var result = [];
-			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
 			var selectedManualId = this.selectedManualId;
 
 			if (selectedManualId) {
@@ -496,16 +420,6 @@ var vm = new Vue({
 					return result;
 				});;
 			}
-							
-			if (selectedOrgFunctionIds.length > 0)
-				result = result.filter(function(element) {
-					var result = false;
-					if (element.organisationFunctions)
-						result = element.organisationFunctions.some(function(orgFunctionId) {
-							return selectedOrgFunctionIds.includes(orgFunctionId);
-						});
-					return result;
-				});
 
 			return result;
 		},
@@ -519,7 +433,6 @@ var vm = new Vue({
 			return [ this.selectedChapterId ];
 		},
 		filteredTreeItems: function() {
-			var selectedOrgFunctionIds = this.selectedOrgFunctionIds;
 			var parentIds = this.resolvedSelectedChapterIds;
 			var textFilter = this.treeFilterText.toLowerCase();				
 			
@@ -527,9 +440,6 @@ var vm = new Vue({
 
 			if (parentIds)
 				result = this.filterTreeByParent(parentIds, result);
-
-			if (selectedOrgFunctionIds.length > 0)
-				result = this.filterTreeByOrgFunction(selectedOrgFunctionIds, result);
 
 			if (textFilter.length > 0) 
 				result = this.filterTreeByText(textFilter, result);
@@ -634,13 +544,13 @@ var vm = new Vue({
 		treeReselectAll: function() {
 			var allNodeIds = this.filteredTreeItems.map(function(element){
 					return element.id;
-					});
+				});
 			this.selectedTreeIds = allNodeIds;
 			this.treeOpenIds = allNodeIds;
 			this.treeKey = this.treeKey + 1; // Triggers a re-render of the tree.
 		},
 		selectAllChapters: function() {
-				this.selectedChapterId = "allChapters";
+			this.selectedChapterId = "allChapters";
 		},
 		filterTreeByParent: function(parentIds, items) {
 			// Finds first children that match the parent ids - breadth first.
@@ -665,27 +575,6 @@ var vm = new Vue({
 			}
 			return result;
 		},
-		filterTreeByOrgFunction: function(orgFuncIds, items) {
-			// Adjusts the filteredChildren attribute of each node to include only children matching the org func.
-			// If an org func matches a child, all ancestor nodes of the child up to the root remain in the tree.
-			var result = [];
-			items.forEach(function(item) {
-				var match = item.organisationFunctions && item.organisationFunctions.some(function(orgFuncId) {
-					return orgFuncIds.includes(orgFuncId);
-				});
-				
-				if (item.filteredChildren) {
-					item.filteredChildren = this.filterTreeByOrgFunction(orgFuncIds, item.filteredChildren);
-					match = match || item.filteredChildren.length > 0;
-				}
-
-				if (match)
-					result.push(item);
-
-			}.bind(this));
-
-			return result;
-		},
 		filterTreeByText: function(textFilter, items) {
 			var result = [];
 			// Adjusts the filteredChildren attribute of each node to include only children matching the text filter on the title attribute.
@@ -704,10 +593,6 @@ var vm = new Vue({
 			}.bind(this));		
 
 			return result;
-		},
-		buildOrganisationFunctions: function(array) {
-		//	return [{ id: "all", title: "Show all manuals" }].concat(array);
-			return array;
 		},
 		categoriseProcesses: function(array) {
 			array.forEach(function(element) {
