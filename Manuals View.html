@@ -300,6 +300,7 @@ var vm = new Vue({
 		selectedChapterId: "allChapters",
 		selectedTreeIds: [],
 		policyTree: [],
+		filteredPolicyTree: [],
 		treeKey: 0, // This property is used to trigger a re-render of the tree
 		treeFilterText: "",
 		treeOpenIds: [],
@@ -324,6 +325,7 @@ var vm = new Vue({
 		/// These watchers ensure that on any filter change the tree reselects all nodes and re-renders 
 		/// to reflect current filtered data
 		selectedManualId: function(oldValue, newValue) {
+			this.filteredPolicyTree = this.policyTree.filter((element) => (element.id === this.selectedManualId)) 			
 			this.selectAllChapters();
 			this.treeReselectAll();
 		},
@@ -436,7 +438,7 @@ var vm = new Vue({
 			var parentIds = this.resolvedSelectedChapterIds;
 			var textFilter = this.treeFilterText.toLowerCase();				
 			
-			var result = this.policyTree;
+			var result = this.filteredPolicyTree;
 
 			if (parentIds)
 				result = this.filterTreeByParent(parentIds, result);
