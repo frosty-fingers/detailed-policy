@@ -182,7 +182,8 @@
 								<template 
 									v-for="item in filteredRows" 
 								>
-								<v-hover>								
+								<keep-alive>
+									<v-hover>								
 									<v-card
 										v-on:click="openItemLink(item)"
 										:key="item.id"	
@@ -272,7 +273,8 @@
 										</v-layout>
 									</v-card>
 								<v-divider></v-divider>
-								</v-hover>
+									</v-hover>
+								</keep-alive>
 							</template>
 							</v-list>
 						</v-content>
