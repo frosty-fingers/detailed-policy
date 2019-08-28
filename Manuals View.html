@@ -193,7 +193,7 @@
 										:class="hover ? 'elevation-3' : ''"
 									>
 										<v-flex
-											v-show="filteredChapters.includes(item) || !(showPolicy)"
+											v-show="filteredChapters.includes(item) || item.sectionType === 'Section' || !(showPolicy)"
 										>
 											<h5
 												class="title mx-3 mb-2 mt-3 accent--text text--darken-1">
